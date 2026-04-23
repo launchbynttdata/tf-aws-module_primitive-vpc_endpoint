@@ -1,4 +1,3 @@
-.terraform
 .repo/
 components/
 .semverbot.toml
@@ -7,17 +6,12 @@ components/
 .idea
 !examples/*.tfvars
 
-# We don't want to commit the test run lock files
-.terraform.lock.hcl
-
 # Don't include the .test-data directory created by Terratest's test-structure module
 **/.test-data/*
 
 # Local .terraform directories
-**/.terraform/*
+.terr*
 
-# Local .terragrunt directories
-**/.terragrunt/*
 
 # .tfstate files
 *.tfstate
@@ -46,7 +40,7 @@ provider.tf
 # !example_override.tf
 
 # Include tfplan files to ignore the plan output of command: terraform plan -out=tfplan
-# example: *tfplan*
+*tfplan*
 
 # Ignore CLI configuration files
 .terraformrc

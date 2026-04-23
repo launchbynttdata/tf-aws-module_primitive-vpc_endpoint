@@ -19,11 +19,6 @@
 #   ├── subnet-a (10.48.10.0/24, AZ a)  ─┐
 #   └── subnet-b (10.48.11.0/24, AZ b)  ─┴── VPC Endpoint (Interface, S3)
 #                                              └── Security Group (HTTPS ingress from VPC)
-
-provider "aws" {
-  region = var.region
-}
-
 # ---------------------------------------------------------------------------
 # Networking foundation
 # ---------------------------------------------------------------------------
@@ -120,6 +115,8 @@ module "endpoint_sg_egress_all" {
 
   security_group_id = module.endpoint_sg.id
   ip_protocol       = "-1"
+  from_port         = -1
+  to_port           = -1
   cidr_ipv4         = "0.0.0.0/0"
   description       = "Allow all egress"
 

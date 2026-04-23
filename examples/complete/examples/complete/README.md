@@ -4,20 +4,20 @@
 ## Requirements
 
 | Name | Version |
-| ---- | ------- |
+|------|---------|
 | <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) | ~> 1.10 |
 | <a name="requirement_aws"></a> [aws](#requirement\_aws) | >= 5.0, < 7.0 |
 
 ## Providers
 
 | Name | Version |
-| ---- | ------- |
+|------|---------|
 | <a name="provider_aws"></a> [aws](#provider\_aws) | 5.100.0 |
 
 ## Modules
 
 | Name | Source | Version |
-| ---- | ------ | ------- |
+|------|--------|---------|
 | <a name="module_vpc"></a> [vpc](#module\_vpc) | terraform.registry.launch.nttdata.com/module_primitive/vpc/aws | ~> 1.0.5 |
 | <a name="module_subnet_a"></a> [subnet\_a](#module\_subnet\_a) | terraform.registry.launch.nttdata.com/module_primitive/subnet/aws | ~> 1.0.5 |
 | <a name="module_subnet_b"></a> [subnet\_b](#module\_subnet\_b) | terraform.registry.launch.nttdata.com/module_primitive/subnet/aws | ~> 1.0 |
@@ -29,13 +29,13 @@
 ## Resources
 
 | Name | Type |
-| ---- | ---- |
+|------|------|
 | [aws_default_security_group.vpc](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/default_security_group) | resource |
 
 ## Inputs
 
 | Name | Description | Type | Default | Required |
-| ---- | ----------- | ---- | ------- | :------: |
+|------|-------------|------|---------|:--------:|
 | <a name="input_region"></a> [region](#input\_region) | AWS region for the example deployment. | `string` | `"us-east-2"` | no |
 | <a name="input_name_prefix"></a> [name\_prefix](#input\_name\_prefix) | Prefix for resource names in the example. | `string` | `"vpce-example"` | no |
 | <a name="input_vpc_cidr_block"></a> [vpc\_cidr\_block](#input\_vpc\_cidr\_block) | CIDR block for the example VPC. | `string` | `"10.48.0.0/16"` | no |
@@ -47,7 +47,7 @@
 ## Outputs
 
 | Name | Description |
-| ---- | ----------- |
+|------|-------------|
 | <a name="output_vpc_id"></a> [vpc\_id](#output\_vpc\_id) | VPC ID used by the example. |
 | <a name="output_region"></a> [region](#output\_region) | AWS region used by the example deployment. |
 | <a name="output_subnet_ids"></a> [subnet\_ids](#output\_subnet\_ids) | Subnet IDs associated with the endpoint. |

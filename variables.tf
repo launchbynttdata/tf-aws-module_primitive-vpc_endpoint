@@ -100,7 +100,7 @@ variable "ip_address_type" {
   default     = null
 
   validation {
-    condition     = var.ip_address_type == null || contains(["ipv4", "dualstack", "ipv6"], var.ip_address_type)
+    condition     = var.ip_address_type == null ? true : contains(["ipv4", "dualstack", "ipv6"], var.ip_address_type)
     error_message = "ip_address_type must be one of: ipv4, dualstack, ipv6, or null."
   }
 }
