@@ -10,6 +10,21 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+// Package test is the post-deploy functional test entry point for the
+// tf-aws-module_primitive-vpc_endpoint module.
+//
+// Test flow (managed by lcaf-component-terratest/lib.RunSetupTestTeardown):
+//  1. terraform init + apply against examples/complete using test.tfvars
+//  2. Call TestComposableComplete (defined in tests/testimpl) to assert state
+//  3. terraform destroy to clean up all AWS resources
+//
+// Run with:
+//
+//	cd tests/post_deploy_functional && go test -v -timeout 30m
+//
+// Or via the repo Makefile:
+//
+//	make test
 package test
 
 import (
@@ -21,15 +36,25 @@ import (
 )
 
 const (
+	// testConfigsExamplesFolderDefault is the path to the Terraform example used
+	// as the test fixture, relative to this file's directory.
 	testConfigsExamplesFolderDefault = "../../examples/complete"
-	infraTFVarFileNameDefault        = "test.tfvars"
+
+	// infraTFVarFileNameDefault is the .tfvars file that supplies input values
+	// for the example during testing.
+	infraTFVarFileNameDefault = "test.tfvars"
 )
 
+// TestVpcEndpointPrimitive is the top-level test that exercises the complete
+// example configuration. It relies on real AWS credentials being available in
+// the environment and will create and destroy actual AWS resources.
 func TestVpcEndpointPrimitive(t *testing.T) {
 	ctx := types.CreateTestContextBuilder().
 		SetTestConfig(&testimpl.ThisTFModuleConfig{}).
 		SetTestConfigFolderName(testConfigsExamplesFolderDefault).
 		SetTestConfigFileName(infraTFVarFileNameDefault).
+		// IS_TERRAFORM_IDEMPOTENT_APPLY: run a second apply after the first and
+		// assert no changes — this catches resources that are not truly idempotent.
 		SetTestSpecificFlags(map[string]types.TestFlags{
 			"complete": {"IS_TERRAFORM_IDEMPOTENT_APPLY": true},
 		}).

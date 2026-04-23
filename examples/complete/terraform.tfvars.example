@@ -4,22 +4,6 @@ vpc_cidr_block = "10.48.0.0/16"
 subnet_cidr_a  = "10.48.10.0/24"
 subnet_cidr_b  = "10.48.11.0/24"
 
-# Optional endpoint policy string (JSON)
-# endpoint_policy = <<JSON
-# {
-#   "Version": "2012-10-17",
-#   "Statement": [
-#     {
-#       "Sid": "AllowReadOnly",
-#       "Effect": "Allow",
-#       "Principal": "*",
-#       "Action": ["s3:GetObject", "s3:ListBucket"],
-#       "Resource": "*"
-#     }
-#   ]
-# }
-# JSON
-
 tags = {
   Environment = "dev"
   Owner       = "platform"

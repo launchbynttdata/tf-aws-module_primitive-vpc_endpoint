@@ -10,11 +10,26 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+# This example demonstrates a complete Interface-type VPC endpoint for the S3
+# service, including all supporting networking resources. It is designed to be
+# used as the Terratest fixture for post-deploy functional testing.
+#
+# Architecture:
+#   VPC (10.48.0.0/16)
+#   ├── subnet-a (10.48.10.0/24, AZ a)  ─┐
+#   └── subnet-b (10.48.11.0/24, AZ b)  ─┴── VPC Endpoint (Interface, S3)
+#                                              └── Security Group (HTTPS ingress from VPC)
+
 provider "aws" {
   region = var.region
 }
 
-# VPC to attach the endpoint to
+# ---------------------------------------------------------------------------
+# Networking foundation
+# ---------------------------------------------------------------------------
+
+# VPC with DNS support and hostnames enabled — both are required for Interface
+# endpoint private DNS to function correctly.
 module "vpc" {
   source  = "terraform.registry.launch.nttdata.com/module_primitive/vpc/aws"
   version = "~> 1.0.5"
@@ -26,6 +41,8 @@ module "vpc" {
   tags = merge(var.tags, { Name = "${var.name_prefix}-vpc" })
 }
 
+# Lock down the default security group so no implicit rules are inherited by
+# resources that do not explicitly reference a security group.
 resource "aws_default_security_group" "vpc" {
   vpc_id  = module.vpc.vpc_id
   ingress = []
@@ -34,7 +51,11 @@ resource "aws_default_security_group" "vpc" {
   tags = merge(var.tags, { Name = "${var.name_prefix}-default-sg" })
 }
 
-# Private subnets for the endpoint network interfaces
+# ---------------------------------------------------------------------------
+# Private subnets
+# One subnet per AZ provides multi-AZ resiliency for the endpoint ENIs.
+# ---------------------------------------------------------------------------
+
 module "subnet_a" {
   source  = "terraform.registry.launch.nttdata.com/module_primitive/subnet/aws"
   version = "~> 1.0.5"
@@ -59,7 +80,12 @@ module "subnet_b" {
   tags = merge(var.tags, { Name = "${var.name_prefix}-subnet-b" })
 }
 
-# Security group controlling access to the endpoint ENIs
+# ---------------------------------------------------------------------------
+# Endpoint security group
+# Controls traffic to/from the endpoint ENIs.
+# Only HTTPS (443) ingress from within the VPC is permitted.
+# ---------------------------------------------------------------------------
+
 module "endpoint_sg" {
   source  = "terraform.registry.launch.nttdata.com/module_primitive/security_group/aws"
   version = "~> 0.7.3"
@@ -71,6 +97,7 @@ module "endpoint_sg" {
   tags = merge(var.tags, { Name = "${var.name_prefix}-vpce-sg" })
 }
 
+# Allow HTTPS traffic from the VPC CIDR to reach the endpoint ENIs.
 module "endpoint_sg_ingress_https" {
   source  = "terraform.registry.launch.nttdata.com/module_primitive/vpc_security_group_ingress_rule/aws"
   version = "~> 0.1.4"
@@ -85,6 +112,8 @@ module "endpoint_sg_ingress_https" {
   tags = var.tags
 }
 
+# Allow all egress so the endpoint ENIs can respond to callers. In production
+# you may want to scope this to the S3 prefix list instead.
 module "endpoint_sg_egress_all" {
   source  = "terraform.registry.launch.nttdata.com/module_primitive/vpc_security_group_egress_rule/aws"
   version = "~> 0.2.2"
@@ -97,7 +126,13 @@ module "endpoint_sg_egress_all" {
   tags = var.tags
 }
 
-# The VPC endpoint under test
+# ---------------------------------------------------------------------------
+# VPC endpoint under test
+# Interface endpoint for S3 in the region, placed in both private subnets.
+# private_dns_enabled is false here because this example does not configure
+# Route 53 private hosted zones; set to true in production where private DNS
+# resolution to s3.amazonaws.com is desired.
+# ---------------------------------------------------------------------------
 module "vpc_endpoint" {
   source = "../.."
 

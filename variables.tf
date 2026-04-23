@@ -10,6 +10,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+# ---------------------------------------------------------------------------
+# Required
+# ---------------------------------------------------------------------------
+
 variable "vpc_id" {
   description = "The ID of the VPC in which to create the endpoint."
   type        = string
@@ -22,6 +26,10 @@ variable "service_name" {
   nullable    = false
 }
 
+# ---------------------------------------------------------------------------
+# Endpoint type
+# ---------------------------------------------------------------------------
+
 variable "vpc_endpoint_type" {
   description = "The VPC endpoint type. Valid values: Interface, Gateway, GatewayLoadBalancer."
   type        = string
@@ -33,14 +41,13 @@ variable "vpc_endpoint_type" {
   }
 }
 
-variable "auto_accept" {
-  description = "Accept the VPC endpoint request automatically (only for endpoints within same account)."
-  type        = bool
-  default     = false
-}
+# ---------------------------------------------------------------------------
+# Interface endpoint settings
+# (ignored by the resource when vpc_endpoint_type != "Interface")
+# ---------------------------------------------------------------------------
 
 variable "private_dns_enabled" {
-  description = "Whether to enable private DNS for the endpoint. Applies to Interface endpoints only."
+  description = "Whether to enable private DNS for the endpoint. Applies to Interface endpoints only. Requires the VPC to have enableDnsSupport and enableDnsHostnames both set to true."
   type        = bool
   default     = false
 }
@@ -57,14 +64,38 @@ variable "security_group_ids" {
   default     = []
 }
 
+variable "dns_options" {
+  description = "DNS options for the endpoint. Applies to Interface endpoints only. Set dns_record_ip_type to control whether A, AAAA, or dualstack records are created. Set private_dns_only_for_inbound_resolver_endpoint to true to restrict private DNS to Route 53 Resolver inbound endpoints."
+  type = object({
+    dns_record_ip_type                             = optional(string)
+    private_dns_only_for_inbound_resolver_endpoint = optional(bool)
+  })
+  default = null
+}
+
+# ---------------------------------------------------------------------------
+# Gateway endpoint settings
+# (ignored by the resource when vpc_endpoint_type != "Gateway")
+# ---------------------------------------------------------------------------
+
 variable "route_table_ids" {
-  description = "List of route table IDs to associate with the endpoint. Applies to Gateway endpoints only."
+  description = "List of route table IDs to associate with the endpoint. Applies to Gateway endpoints only. The AWS provider will add prefix-list routes targeting this endpoint to each specified route table."
   type        = list(string)
   default     = []
 }
 
+# ---------------------------------------------------------------------------
+# Common settings
+# ---------------------------------------------------------------------------
+
+variable "auto_accept" {
+  description = "Accept the VPC endpoint request automatically. Only relevant for endpoint services in the same AWS account; cross-account requests require explicit acceptance by the service owner."
+  type        = bool
+  default     = false
+}
+
 variable "ip_address_type" {
-  description = "The IP address type for the endpoint. Valid values: ipv4, dualstack, ipv6. Defaults to the service default when null."
+  description = "The IP address type for the endpoint. Valid values: ipv4, dualstack, ipv6. When null the service default is used."
   type        = string
   default     = null
 
@@ -74,20 +105,19 @@ variable "ip_address_type" {
   }
 }
 
-variable "dns_options" {
-  description = "DNS options for the endpoint. Applies to Interface endpoints only."
-  type = object({
-    dns_record_ip_type                             = optional(string)
-    private_dns_only_for_inbound_resolver_endpoint = optional(bool)
-  })
-  default = null
-}
+# ---------------------------------------------------------------------------
+# Access policy
+# ---------------------------------------------------------------------------
 
 variable "policy" {
-  description = "A policy document to attach to the endpoint controlling access to the service. When null, the default full-access policy is used."
+  description = "A JSON policy document to attach to the endpoint controlling which principals and actions are permitted. When null, AWS applies a default policy that allows full access to the service."
   type        = string
   default     = null
 }
+
+# ---------------------------------------------------------------------------
+# Tagging
+# ---------------------------------------------------------------------------
 
 variable "tags" {
   description = "Tags to apply to the VPC endpoint resource."
