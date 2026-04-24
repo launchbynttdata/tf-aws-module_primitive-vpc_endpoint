@@ -137,7 +137,7 @@ tfmodule/test/terraform:
 	@[ -d "$(TF_TEST_DIRECTORY)" ] || { echo "No terraform test directory found at $(TF_TEST_DIRECTORY)."; exit 0; }
 	@find "$(TF_TEST_DIRECTORY)" -name "*.tftest.hcl" | grep -q "\.tftest\.hcl" || { echo "No terraform test files found in $(TF_TEST_DIRECTORY)."; exit 0; }
 	@echo && echo "Running terraform tests from $(TF_TEST_DIRECTORY) ..."
-	AWS_REGION="$(AWS_REGION)" AWS_DEFAULT_REGION="$(AWS_REGION)" $(TERRAFORM) init -backend=false -input=false
+	AWS_REGION="$(AWS_REGION)" AWS_DEFAULT_REGION="$(AWS_REGION)" $(TERRAFORM) init -upgrade -backend=false -input=false -test-directory="$(TF_TEST_DIRECTORY)"
 	AWS_REGION="$(AWS_REGION)" AWS_DEFAULT_REGION="$(AWS_REGION)" $(TERRAFORM) test -verbose -test-directory="$(TF_TEST_DIRECTORY)"
 
 .PHONY: tfmodule/test/go

@@ -34,14 +34,14 @@ repos:
           - --hook-config=--add-to-existing-file=true
           - --hook-config=--create-file-if-not-exist=true
           - --args=--sort=false
-      - id: terraform_docs
-        name: terraform_docs (examples/complete)
-        args:
-          - --hook-config=--path-to-file=examples/complete/README.md
-          - --hook-config=--add-to-existing-file=true
-          - --hook-config=--create-file-if-not-exist=true
-          - --args=--sort=false
-        files: ^examples/complete/.*\.tf$
+      # - id: terraform_docs
+      #   name: terraform_docs (examples/complete)
+      #   args:
+      #     - --hook-config=--path-to-file=examples/complete/README.md
+      #     - --hook-config=--add-to-existing-file=true
+      #     - --hook-config=--create-file-if-not-exist=true
+      #     - --args=--sort=false
+      #   files: ^examples/complete/.*\.tf$
   - repo: https://github.com/golangci/golangci-lint
     rev: v2.11.4
     hooks:
