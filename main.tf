@@ -32,7 +32,7 @@ resource "aws_vpc_endpoint" "this" {
 
   # Interface + GatewayLoadBalancer: one ENI is placed per subnet.
   # Gateway endpoints use route table entries instead of ENIs.
-  subnet_ids = var.vpc_endpoint_type == "Interface" ? var.subnet_ids : null
+  subnet_ids = contains(["Interface", "GatewayLoadBalancer"], var.vpc_endpoint_type) ? var.subnet_ids : null
 
   # Interface-only: security groups control traffic to and from the endpoint ENIs.
   security_group_ids = var.vpc_endpoint_type == "Interface" ? var.security_group_ids : null
@@ -43,7 +43,7 @@ resource "aws_vpc_endpoint" "this" {
   # Optional DNS customization for Interface endpoints (e.g. dualstack record types).
   # The block is omitted entirely when dns_options is null.
   dynamic "dns_options" {
-    for_each = var.dns_options != null ? [var.dns_options] : []
+    for_each = var.vpc_endpoint_type == "Interface" && var.dns_options != null ? [var.dns_options] : []
     content {
       dns_record_ip_type                             = dns_options.value.dns_record_ip_type
       private_dns_only_for_inbound_resolver_endpoint = dns_options.value.private_dns_only_for_inbound_resolver_endpoint

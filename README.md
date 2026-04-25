@@ -151,14 +151,31 @@ This installs:
 
 ## Testing
 
-Tests are implemented using [Terratest](https://github.com/gruntwork-io/terratest) and the [LCAF testing framework](https://github.com/launchbynttdata/lcaf-component-terratest).
+Tests are implemented using [Terraform Test Framework](https://developer.hashicorp.com/terraform/language/tests) for input validation, [Terratest](https://github.com/gruntwork-io/terratest) + [LCAF testing framework](https://github.com/launchbynttdata/lcaf-component-terratest) for post-deploy integration, and [conftest](https://www.conftest.dev/) / [Regula](https://regula.dev/) for policy validation.
+
+### Running Tests
 
 ```bash
-# Run the full test suite (deploys real AWS resources)
+# Run the full test suite
 make test
 ```
 
-The test suite deploys the `examples/complete` configuration, verifies the endpoint reaches `available` state via the AWS EC2 API, then destroys all resources.
+The `make test` target runs multiple test stages in sequence via GNU Make's double-colon rule composition:
+
+1. **Terraform validation tests** (`tfmodule/test/terraform`) — Plan-only tests in `tests/terraform/*.tftest.hcl`:
+   - Input validation (required fields, variable types, constraint validation)
+   - Endpoint-type specific behavior (Interface, Gateway, GatewayLoadBalancer)
+   - No AWS resources created; runs offline
+
+2. **Post-deploy functional tests** (`go/test`) — Integration tests in `tests/post_deploy_functional/`:
+   - Deploys the `examples/complete` configuration to AWS
+   - Uses the LCAF framework to orchestrate setup, test invocation, and teardown
+   - Calls the AWS SDK v2 to verify the endpoint reaches `available` state
+   - Cleans up all created resources (even if test fails)
+
+3. **Policy validation** (`tfmodule/test/conftest`, `tfmodule/test/regula`) — Static analysis of Terraform plans:
+   - Validates against custom policy rules and org standards
+   - No AWS resources created
 
 ---
 
@@ -168,13 +185,13 @@ The test suite deploys the `examples/complete` configuration, verifies the endpo
 | Name | Version |
 |------|---------|
 | <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) | ~> 1.10 |
-| <a name="requirement_aws"></a> [aws](#requirement\_aws) | >= 5.0, < 7.0 |
+| <a name="requirement_aws"></a> [aws](#requirement\_aws) | ~> 5.100 |
 
 ## Providers
 
 | Name | Version |
 |------|---------|
-| <a name="provider_aws"></a> [aws](#provider\_aws) | 6.42.0 |
+| <a name="provider_aws"></a> [aws](#provider\_aws) | 5.100.0 |
 
 ## Modules
 
@@ -195,7 +212,7 @@ No modules.
 | <a name="input_service_name"></a> [service\_name](#input\_service\_name) | The service name for the endpoint (e.g. com.amazonaws.us-east-1.s3). | `string` | n/a | yes |
 | <a name="input_vpc_endpoint_type"></a> [vpc\_endpoint\_type](#input\_vpc\_endpoint\_type) | The VPC endpoint type. Valid values: Interface, Gateway, GatewayLoadBalancer. | `string` | `"Interface"` | no |
 | <a name="input_private_dns_enabled"></a> [private\_dns\_enabled](#input\_private\_dns\_enabled) | Whether to enable private DNS for the endpoint. Applies to Interface endpoints only. Requires the VPC to have enableDnsSupport and enableDnsHostnames both set to true. | `bool` | `false` | no |
-| <a name="input_subnet_ids"></a> [subnet\_ids](#input\_subnet\_ids) | List of subnet IDs in which to create endpoint network interfaces. Applies to Interface and GatewayLoadBalancer endpoints. | `list(string)` | `[]` | no |
+| <a name="input_subnet_ids"></a> [subnet\_ids](#input\_subnet\_ids) | List of subnet IDs in which to create endpoint network interfaces. Applies to Interface and GatewayLoadBalancer endpoints. | `list(string)` | `null` | no |
 | <a name="input_security_group_ids"></a> [security\_group\_ids](#input\_security\_group\_ids) | List of security group IDs to associate with the endpoint network interfaces. Applies to Interface endpoints only. | `list(string)` | `[]` | no |
 | <a name="input_dns_options"></a> [dns\_options](#input\_dns\_options) | DNS options for the endpoint. Applies to Interface endpoints only. Set dns\_record\_ip\_type to control whether A, AAAA, or dualstack records are created. Set private\_dns\_only\_for\_inbound\_resolver\_endpoint to true to restrict private DNS to Route 53 Resolver inbound endpoints. | <pre>object({<br/>    dns_record_ip_type                             = optional(string)<br/>    private_dns_only_for_inbound_resolver_endpoint = optional(bool)<br/>  })</pre> | `null` | no |
 | <a name="input_route_table_ids"></a> [route\_table\_ids](#input\_route\_table\_ids) | List of route table IDs to associate with the endpoint. Applies to Gateway endpoints only. The AWS provider will add prefix-list routes targeting this endpoint to each specified route table. | `list(string)` | `[]` | no |

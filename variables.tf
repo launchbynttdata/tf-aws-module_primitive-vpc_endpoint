@@ -55,7 +55,14 @@ variable "private_dns_enabled" {
 variable "subnet_ids" {
   description = "List of subnet IDs in which to create endpoint network interfaces. Applies to Interface and GatewayLoadBalancer endpoints."
   type        = list(string)
-  default     = []
+  default     = null
+
+  validation {
+    condition = contains(["Interface", "GatewayLoadBalancer"], var.vpc_endpoint_type) ? (
+      var.subnet_ids != null && length(var.subnet_ids) > 0
+    ) : true
+    error_message = "subnet_ids must be provided with at least one subnet ID when vpc_endpoint_type is Interface or GatewayLoadBalancer."
+  }
 }
 
 variable "security_group_ids" {

@@ -21,6 +21,7 @@ run "valid_interface_endpoint_minimal" {
   variables {
     vpc_id       = "vpc-0123456789abcdef0"
     service_name = "com.amazonaws.us-east-2.s3"
+    subnet_ids   = ["subnet-aaaaaaaaaaaaaaa01"]
   }
 }
 
@@ -58,6 +59,7 @@ run "valid_interface_with_policy" {
   variables {
     vpc_id       = "vpc-0123456789abcdef0"
     service_name = "com.amazonaws.us-east-2.s3"
+    subnet_ids   = ["subnet-aaaaaaaaaaaaaaa01"]
     policy       = jsonencode({ Version = "2012-10-17", Statement = [{ Effect = "Allow", Principal = "*", Action = "s3:GetObject", Resource = "*" }] })
   }
 }
@@ -68,6 +70,7 @@ run "valid_interface_dualstack" {
   variables {
     vpc_id          = "vpc-0123456789abcdef0"
     service_name    = "com.amazonaws.us-east-2.s3"
+    subnet_ids      = ["subnet-aaaaaaaaaaaaaaa01"]
     ip_address_type = "dualstack"
   }
 }
@@ -78,6 +81,7 @@ run "valid_interface_ipv6" {
   variables {
     vpc_id          = "vpc-0123456789abcdef0"
     service_name    = "com.amazonaws.us-east-2.s3"
+    subnet_ids      = ["subnet-aaaaaaaaaaaaaaa01"]
     ip_address_type = "ipv6"
   }
 }
@@ -102,6 +106,7 @@ run "invalid_ip_address_type" {
   variables {
     vpc_id          = "vpc-0123456789abcdef0"
     service_name    = "com.amazonaws.us-east-2.s3"
+    subnet_ids      = ["subnet-aaaaaaaaaaaaaaa01"]
     ip_address_type = "invalid"
   }
 
