@@ -18,60 +18,134 @@ package testimpl
 
 import (
 	"context"
+	"fmt"
+	"strings"
 	"testing"
+	"time"
 
+	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/service/ec2"
+	ec2types "github.com/aws/aws-sdk-go-v2/service/ec2/types"
 	"github.com/gruntwork-io/terratest/modules/terraform"
 	"github.com/launchbynttdata/lcaf-component-terratest/types"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
-// TestComposableComplete validates a deployed VPC endpoint is in the expected state.
-//
-// Verification steps:
-//  1. Read the endpoint ID from the Terraform outputs.
-//  2. Load AWS credentials from the environment (supports SSO, instance profile, etc.).
-//  3. Call DescribeVpcEndpoints to retrieve the live resource.
-//  4. Assert that the endpoint state is "available", confirming the resource was
-//     provisioned successfully and is ready to serve traffic.
+type endpointVerification struct {
+	client     *ec2.Client
+	endpointID string
+}
+
+// TestComposableComplete runs read-only assertions first, then performs a
+// small mutating operation (temporary tag add/remove) to prove write behavior.
 func TestComposableComplete(t *testing.T, ctx types.TestContext) {
+	verification := verifyEndpointReadOnly(t, ctx)
+	runEndpointTagWriteProbe(t, verification.client, verification.endpointID)
+}
+
+// TestComposableCompleteReadonly validates the deployed endpoint via read-only
+// SDK calls only.
+func TestComposableCompleteReadonly(t *testing.T, ctx types.TestContext) {
+	verifyEndpointReadOnly(t, ctx)
+}
+
+func verifyEndpointReadOnly(t *testing.T, ctx types.TestContext) endpointVerification {
+	t.Helper()
+
 	tfOptions := ctx.TerratestTerraformOptions()
 
-	// Retrieve the endpoint ID created by the module under test.
 	endpointID := terraform.Output(t, tfOptions, "endpoint_id")
 	require.NotEmpty(t, endpointID, "endpoint_id output must not be empty")
 
-	// Fall back to the example default region if the output is absent.
 	region := terraform.Output(t, tfOptions, "region")
 	if region == "" {
 		region = "us-east-2"
 	}
 
-	// Load AWS config from the environment. The test runner is expected to have
-	// valid credentials available (e.g. via AWS_PROFILE, AWS_DEFAULT_REGION, or
-	// an IAM role attached to the CI runner).
-	awsCfg, err := config.LoadDefaultConfig(context.Background(),
-		config.WithRegion(region),
-	)
+	expectedServiceName := fmt.Sprintf("com.amazonaws.%s.s3", region)
+	expectedSubnetIDs := terraform.OutputList(t, tfOptions, "subnet_ids")
+	require.Len(t, expectedSubnetIDs, 2, "complete example should create two endpoint subnets")
+	expectedSecurityGroupID := terraform.Output(t, tfOptions, "endpoint_security_group_id")
+	require.NotEmpty(t, expectedSecurityGroupID, "endpoint_security_group_id output must not be empty")
+
+	awsCfg, err := config.LoadDefaultConfig(context.Background(), config.WithRegion(region))
 	require.NoError(t, err, "failed to load AWS config")
 
 	ec2Client := ec2.NewFromConfig(awsCfg)
+	endpoint := waitForEndpointAvailability(t, ec2Client, endpointID)
 
-	// Describe the specific endpoint to verify its live state. Using the ID
-	// directly avoids paginating through unrelated endpoints.
-	result, err := ec2Client.DescribeVpcEndpoints(context.Background(), &ec2.DescribeVpcEndpointsInput{
-		VpcEndpointIds: []string{endpointID},
+	assert.Equal(t, endpointID, aws.ToString(endpoint.VpcEndpointId), "endpoint ID should match Terraform output")
+	assert.Equal(t, ec2types.VpcEndpointTypeInterface, endpoint.VpcEndpointType, "endpoint type should match module input")
+	assert.Equal(t, expectedServiceName, aws.ToString(endpoint.ServiceName), "service name should match example configuration")
+	assert.ElementsMatch(t, expectedSubnetIDs, endpoint.SubnetIds, "endpoint subnets should match example outputs")
+	assert.ElementsMatch(t, []string{expectedSecurityGroupID}, securityGroupIDs(endpoint.Groups), "endpoint security groups should match example output")
+	assert.True(t, strings.EqualFold(string(endpoint.State), "available"), "endpoint should reach available state")
+
+	return endpointVerification{
+		client:     ec2Client,
+		endpointID: endpointID,
+	}
+}
+
+func waitForEndpointAvailability(t *testing.T, client *ec2.Client, endpointID string) ec2types.VpcEndpoint {
+	t.Helper()
+
+	deadline := time.Now().Add(3 * time.Minute)
+	for {
+		result, err := client.DescribeVpcEndpoints(context.Background(), &ec2.DescribeVpcEndpointsInput{
+			VpcEndpointIds: []string{endpointID},
+		})
+		require.NoError(t, err, "failed to describe VPC endpoint %s", endpointID)
+		require.Len(t, result.VpcEndpoints, 1, "expected exactly one endpoint")
+
+		endpoint := result.VpcEndpoints[0]
+		state := strings.ToLower(string(endpoint.State))
+		if state == "available" {
+			return endpoint
+		}
+		if state == "failed" || state == "rejected" || state == "deleted" {
+			require.FailNowf(t, "endpoint entered terminal failure state", "endpoint %s is in unexpected state %s", endpointID, endpoint.State)
+		}
+		if time.Now().After(deadline) {
+			require.FailNowf(t, "timed out waiting for endpoint", "endpoint %s did not reach available state before timeout, last state: %s", endpointID, endpoint.State)
+		}
+
+		time.Sleep(10 * time.Second)
+	}
+}
+
+func runEndpointTagWriteProbe(t *testing.T, client *ec2.Client, endpointID string) {
+	t.Helper()
+
+	probeKey := "LcafFunctionalWriteProbe"
+	_, err := client.CreateTags(context.Background(), &ec2.CreateTagsInput{
+		Resources: []string{endpointID},
+		Tags: []ec2types.Tag{
+			{
+				Key:   aws.String(probeKey),
+				Value: aws.String("true"),
+			},
+		},
 	})
-	require.NoError(t, err, "failed to describe VPC endpoint %s", endpointID)
-	require.Len(t, result.VpcEndpoints, 1, "expected exactly one endpoint")
+	require.NoError(t, err, "functional test should be able to add a temporary endpoint tag")
 
-	endpoint := result.VpcEndpoints[0]
+	_, err = client.DeleteTags(context.Background(), &ec2.DeleteTagsInput{
+		Resources: []string{endpointID},
+		Tags: []ec2types.Tag{
+			{
+				Key: aws.String(probeKey),
+			},
+		},
+	})
+	require.NoError(t, err, "functional test should be able to remove the temporary endpoint tag")
+}
 
-	// "available" is the terminal success state for a VPC endpoint. Any other
-	// state (pending, pendingAcceptance, rejected, failed) indicates the
-	// endpoint is not yet ready or encountered an error.
-	assert.Equal(t, "available", string(endpoint.State),
-		"VPC endpoint should be in available state")
+func securityGroupIDs(groups []ec2types.SecurityGroupIdentifier) []string {
+	ids := make([]string, 0, len(groups))
+	for _, group := range groups {
+		ids = append(ids, aws.ToString(group.GroupId))
+	}
+	return ids
 }

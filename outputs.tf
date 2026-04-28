@@ -16,12 +16,12 @@
 
 output "id" {
   description = "The ID of the VPC endpoint (e.g. vpce-0abc123)."
-  value       = aws_vpc_endpoint.this.id
+  value       = aws_vpc_endpoint.endpoint.id
 }
 
 output "arn" {
   description = "The Amazon Resource Name (ARN) of the VPC endpoint."
-  value       = aws_vpc_endpoint.this.arn
+  value       = aws_vpc_endpoint.endpoint.arn
 }
 
 # ---------------------------------------------------------------------------
@@ -30,7 +30,7 @@ output "arn" {
 
 output "state" {
   description = "The current state of the VPC endpoint. Common values: pendingAcceptance, pending, available, deleting, deleted."
-  value       = aws_vpc_endpoint.this.state
+  value       = aws_vpc_endpoint.endpoint.state
 }
 
 # ---------------------------------------------------------------------------
@@ -40,12 +40,12 @@ output "state" {
 
 output "dns_entry" {
   description = "The DNS entries for the VPC endpoint. Each entry is an object containing dns_name (the hostname) and hosted_zone_id (the Route 53 hosted zone). Use these values to configure DNS resolution or alias records."
-  value       = aws_vpc_endpoint.this.dns_entry
+  value       = aws_vpc_endpoint.endpoint.dns_entry
 }
 
 output "network_interface_ids" {
   description = "List of network interface IDs created for the endpoint ENIs. Populated for Interface type endpoints only. Useful for attaching additional security group rules or for network flow log analysis."
-  value       = aws_vpc_endpoint.this.network_interface_ids
+  value       = aws_vpc_endpoint.endpoint.network_interface_ids
 }
 
 # ---------------------------------------------------------------------------
@@ -55,7 +55,7 @@ output "network_interface_ids" {
 
 output "prefix_list_id" {
   description = "The managed prefix list ID representing the AWS service CIDR ranges. Populated for Gateway type endpoints only. Can be referenced in security group rules to allow traffic to the service without specifying IP ranges directly."
-  value       = aws_vpc_endpoint.this.prefix_list_id
+  value       = aws_vpc_endpoint.endpoint.prefix_list_id
 }
 
 # ---------------------------------------------------------------------------
@@ -64,5 +64,5 @@ output "prefix_list_id" {
 
 output "policy" {
   description = "The JSON access policy attached to the endpoint. Returns null when no custom policy was provided (AWS default full-access policy is in effect)."
-  value       = var.policy != null ? aws_vpc_endpoint_policy.this[0].policy : null
+  value       = var.policy != null ? aws_vpc_endpoint_policy.endpoint[0].policy : null
 }

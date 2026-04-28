@@ -19,7 +19,7 @@
 #
 # Attributes that do not apply to a given type are set to null so the AWS provider
 # omits them from the API call and avoids plan drift.
-resource "aws_vpc_endpoint" "this" {
+resource "aws_vpc_endpoint" "endpoint" {
   vpc_id            = var.vpc_id
   service_name      = var.service_name
   vpc_endpoint_type = var.vpc_endpoint_type
@@ -59,9 +59,9 @@ resource "aws_vpc_endpoint" "this" {
 # its default full-access policy. Providing a JSON policy string here creates a
 # separate aws_vpc_endpoint_policy resource so the policy can be updated without
 # replacing the endpoint itself.
-resource "aws_vpc_endpoint_policy" "this" {
+resource "aws_vpc_endpoint_policy" "endpoint" {
   count = var.policy != null ? 1 : 0
 
-  vpc_endpoint_id = aws_vpc_endpoint.this.id
+  vpc_endpoint_id = aws_vpc_endpoint.endpoint.id
   policy          = var.policy
 }

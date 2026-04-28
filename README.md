@@ -160,22 +160,22 @@ Tests are implemented using [Terraform Test Framework](https://developer.hashico
 make test
 ```
 
-The `make test` target runs multiple test stages in sequence via GNU Make's double-colon rule composition:
+The `make test` target runs multiple stages via GNU Make's double-colon rule composition:
 
-1. **Terraform validation tests** (`tfmodule/test/terraform`) — Plan-only tests in `tests/terraform/*.tftest.hcl`:
-   - Input validation (required fields, variable types, constraint validation)
-   - Endpoint-type specific behavior (Interface, Gateway, GatewayLoadBalancer)
-   - No AWS resources created; runs offline
+1. **Terraform test framework suite** (`tfmodule/test/terraform`) — Runs all tests under `tests/terraform/*.tftest.hcl`:
+   - `inputs_validation.tftest.hcl` executes plan-based input validation checks (offline)
+   - `examples_complete_apply.tftest.hcl` executes an apply-based integration test against `examples/complete` (requires AWS credentials and creates resources)
 
 2. **Post-deploy functional tests** (`go/test`) — Integration tests in `tests/post_deploy_functional/`:
-   - Deploys the `examples/complete` configuration to AWS
-   - Uses the LCAF framework to orchestrate setup, test invocation, and teardown
-   - Calls the AWS SDK v2 to verify the endpoint reaches `available` state
-   - Cleans up all created resources (even if test fails)
+   - Deploys `examples/complete`, verifies endpoint configuration via AWS SDK, performs a lightweight mutating operation, then destroys resources
 
-3. **Policy validation** (`tfmodule/test/conftest`, `tfmodule/test/regula`) — Static analysis of Terraform plans:
+3. **Post-deploy readonly tests** (`tests/post_deploy_functional_readonly/`) — Non-destructive integration tests:
+   - Reuses the same `examples/complete` fixture and `test.tfvars`
+   - Uses read-only SDK verification via `lib.RunNonDestructiveTest` and `TestComposableCompleteReadonly`
+   - Does not perform Terraform apply/destroy in the readonly test flow
+
+4. **Policy validation** (`tfmodule/test/conftest`, `tfmodule/test/regula`) — Static analysis of Terraform plans:
    - Validates against custom policy rules and org standards
-   - No AWS resources created
 
 ---
 
@@ -201,8 +201,8 @@ No modules.
 
 | Name | Type |
 |------|------|
-| [aws_vpc_endpoint.this](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/vpc_endpoint) | resource |
-| [aws_vpc_endpoint_policy.this](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/vpc_endpoint_policy) | resource |
+| [aws_vpc_endpoint.endpoint](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/vpc_endpoint) | resource |
+| [aws_vpc_endpoint_policy.endpoint](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/vpc_endpoint_policy) | resource |
 
 ## Inputs
 
