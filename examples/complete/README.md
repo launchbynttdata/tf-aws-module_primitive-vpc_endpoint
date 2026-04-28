@@ -120,7 +120,7 @@ The test runner applies the example using `test.tfvars`, asserts the endpoint is
 
 ## Notes
 
-- `private_dns_enabled` is intentionally set to `false` in this example to avoid a Route 53 private hosted zone dependency during testing. Set it to `true` in production deployments where you want transparent DNS resolution.
+- `private_dns_enabled` is intentionally set to `false` in this example so test runs do not override default service hostname resolution in shared environments. Set it to `true` in production deployments where you want transparent private DNS resolution through the endpoint.
 - The default security group is explicitly cleared of all rules to prevent unintended connectivity; this is a security best practice when using custom security groups.
 - Both subnets are placed in separate AZs (`a` and `b`) to ensure the endpoint ENIs survive a single-AZ failure.
 
@@ -146,7 +146,7 @@ The test runner applies the example using `test.tfvars`, asserts the endpoint is
 |------|--------|---------|
 | <a name="module_vpc"></a> [vpc](#module\_vpc) | terraform.registry.launch.nttdata.com/module_primitive/vpc/aws | ~> 1.0.5 |
 | <a name="module_subnet_a"></a> [subnet\_a](#module\_subnet\_a) | terraform.registry.launch.nttdata.com/module_primitive/subnet/aws | ~> 1.0.5 |
-| <a name="module_subnet_b"></a> [subnet\_b](#module\_subnet\_b) | terraform.registry.launch.nttdata.com/module_primitive/subnet/aws | ~> 1.0 |
+| <a name="module_subnet_b"></a> [subnet\_b](#module\_subnet\_b) | terraform.registry.launch.nttdata.com/module_primitive/subnet/aws | ~> 1.0.5 |
 | <a name="module_endpoint_sg"></a> [endpoint\_sg](#module\_endpoint\_sg) | terraform.registry.launch.nttdata.com/module_primitive/security_group/aws | ~> 0.7.3 |
 | <a name="module_endpoint_sg_ingress_https"></a> [endpoint\_sg\_ingress\_https](#module\_endpoint\_sg\_ingress\_https) | terraform.registry.launch.nttdata.com/module_primitive/vpc_security_group_ingress_rule/aws | ~> 0.1.4 |
 | <a name="module_endpoint_sg_egress_all"></a> [endpoint\_sg\_egress\_all](#module\_endpoint\_sg\_egress\_all) | terraform.registry.launch.nttdata.com/module_primitive/vpc_security_group_egress_rule/aws | ~> 0.2.2 |

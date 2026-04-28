@@ -65,7 +65,7 @@ module "subnet_a" {
 
 module "subnet_b" {
   source  = "terraform.registry.launch.nttdata.com/module_primitive/subnet/aws"
-  version = "~> 1.0"
+  version = "~> 1.0.5"
 
   vpc_id                  = module.vpc.vpc_id
   cidr_block              = var.subnet_cidr_b
@@ -126,9 +126,9 @@ module "endpoint_sg_egress_all" {
 # ---------------------------------------------------------------------------
 # VPC endpoint under test
 # Interface endpoint for S3 in the region, placed in both private subnets.
-# private_dns_enabled is false here because this example does not configure
-# Route 53 private hosted zones; set to true in production where private DNS
-# resolution to s3.amazonaws.com is desired.
+# private_dns_enabled is false here so tests do not override default service
+# hostname resolution in shared environments. Set it to true in production when
+# private resolution to the endpoint is desired.
 # ---------------------------------------------------------------------------
 module "vpc_endpoint" {
   source = "../.."

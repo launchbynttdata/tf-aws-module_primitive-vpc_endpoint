@@ -10,10 +10,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Package testimpl contains the shared test implementation for the
-// tf-aws-module_primitive-vpc_endpoint module. It is invoked by the
-// post_deploy_functional test runner after Terraform has applied the
-// examples/complete configuration.
+// Package testimpl contains shared endpoint verification logic for the
+// tf-aws-module_primitive-vpc_endpoint module.
+//
+// It is used by both post-deploy runners:
+//   - post_deploy_functional: run read-only checks, then perform a write probe
+//   - post_deploy_functional_readonly: run read-only checks only
 package testimpl
 
 import (
