@@ -156,26 +156,34 @@ Tests are implemented using [Terraform Test Framework](https://developer.hashico
 ### Running Tests
 
 ```bash
-# Run the full test suite
+# Run the full test suite (Terraform plan/apply tests + Go functional integration tests)
 make test
+
+# Run lint + full test suite (authoritative CI entrypoint)
+make check
 ```
 
-The `make test` target runs multiple stages via GNU Make's double-colon rule composition:
+`make check` is the authoritative top-level entrypoint used by CI and covers linting followed by all `make test` stages. Use `make test` for local development when you want to skip linting.
+
+The `make test` target runs two stages via GNU Make's double-colon rule composition:
 
 1. **Terraform test framework suite** (`tfmodule/test/terraform`) — Runs all tests under `tests/terraform/*.tftest.hcl`:
-   - `inputs_validation.tftest.hcl` executes plan-based input validation checks (offline)
-   - `examples_complete_apply.tftest.hcl` executes an apply-based integration test against `examples/complete` (requires AWS credentials and creates resources)
+   - `inputs_validation.tftest.hcl` — plan-based input validation checks; no AWS credentials required
+   - `examples_complete_apply.tftest.hcl` — apply-based integration test against `examples/complete`; requires AWS credentials and creates real resources
 
-2. **Post-deploy functional tests** (`go/test`) — Integration tests in `tests/post_deploy_functional/`:
-   - Deploys `examples/complete`, verifies endpoint configuration via AWS SDK, performs a lightweight mutating operation, then destroys resources
+2. **Go functional integration tests** (`tfmodule/test/go`) — Runs `tests/post_deploy_functional/` via Terratest:
+   - Deploys `examples/complete` using `test.tfvars`, verifies the endpoint state via the AWS EC2 SDK, performs a lightweight tag write probe to confirm mutating access, then destroys all resources
+   - `tests/post_deploy_functional_readonly/` is **excluded** from this stage by design (see below)
 
-3. **Post-deploy readonly tests** (`tests/post_deploy_functional_readonly/`) — Non-destructive integration tests:
-   - Reuses the same `examples/complete` fixture and `test.tfvars`
-   - Uses read-only SDK verification via `lib.RunNonDestructiveTest` and `TestComposableCompleteReadonly`
-   - Does not perform Terraform apply/destroy in the readonly test flow
+### Readonly Tests
 
-4. **Policy validation** (`tfmodule/test/conftest`, `tfmodule/test/regula`) — Static analysis of Terraform plans:
-   - Validates against custom policy rules and org standards
+`tests/post_deploy_functional_readonly/` contains a non-destructive test (`TestVpcEndpointPrimitiveReadOnly`) that runs read-only SDK assertions against pre-existing infrastructure without calling `terraform apply` or `terraform destroy`. It is intentionally excluded from `make test` because it requires infrastructure to already be deployed.
+
+To run it against a live environment:
+
+```bash
+cd tests/post_deploy_functional_readonly && go test -v -timeout 30m
+```
 
 ---
 

@@ -143,10 +143,11 @@ tfmodule/test/terraform:
 .PHONY: tfmodule/test/go
 tfmodule/test/go:
 	@[ -d "tests" ] || { echo "No tests directory found."; exit 0; }
-	@find tests -name "*_test.go" | grep -q "_test\.go" || { echo "No Go test files found in tests/."; exit 0; }
+	@find tests -name "*_test.go" | grep -v post_deploy_functional_readonly | grep -q "_test\.go" || { echo "No Go test files found in tests/."; exit 0; }
 	@echo && echo "Running go tests from $(GO_TEST_TARGET) with timeout $(GO_TEST_TIMEOUT) ..."
-	go test -v -timeout "$(GO_TEST_TIMEOUT)" $(GO_TEST_TARGET)
+	go test -v -timeout "$(GO_TEST_TIMEOUT)" $$(go list $(GO_TEST_TARGET) | grep -v post_deploy_functional_readonly)
 
 .PHONY: test
 test::
 	$(MAKE) tfmodule/test/terraform
+	$(MAKE) tfmodule/test/go
