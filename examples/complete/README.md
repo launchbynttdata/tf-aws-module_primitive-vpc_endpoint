@@ -168,6 +168,15 @@ The test runner applies the example using `test.tfvars`, asserts the endpoint is
 | <a name="input_subnet_cidr_a"></a> [subnet\_cidr\_a](#input\_subnet\_cidr\_a) | CIDR block for the first private subnet. | `string` | `"10.48.10.0/24"` | no |
 | <a name="input_subnet_cidr_b"></a> [subnet\_cidr\_b](#input\_subnet\_cidr\_b) | CIDR block for the second private subnet. | `string` | `"10.48.11.0/24"` | no |
 | <a name="input_endpoint_policy"></a> [endpoint\_policy](#input\_endpoint\_policy) | Optional JSON policy document to attach to the VPC endpoint. | `string` | `null` | no |
+| <a name="input_service_name"></a> [service\_name](#input\_service\_name) | Optional endpoint service name override (for example com.amazonaws.us-east-2.s3). When null, defaults to regional S3 for var.region. | `string` | `null` | no |
+| <a name="input_vpc_endpoint_type"></a> [vpc\_endpoint\_type](#input\_vpc\_endpoint\_type) | Endpoint type passed to the module. Valid values: Interface, Gateway, GatewayLoadBalancer. | `string` | `"Interface"` | no |
+| <a name="input_private_dns_enabled"></a> [private\_dns\_enabled](#input\_private\_dns\_enabled) | Whether to enable private DNS on Interface endpoints. Ignored for non-Interface types. | `bool` | `false` | no |
+| <a name="input_endpoint_subnet_ids"></a> [endpoint\_subnet\_ids](#input\_endpoint\_subnet\_ids) | Optional subnet IDs to pass into the endpoint module. When null, uses the two subnets created by this example. | `list(string)` | `null` | no |
+| <a name="input_endpoint_security_group_ids"></a> [endpoint\_security\_group\_ids](#input\_endpoint\_security\_group\_ids) | Optional security group IDs to pass into the endpoint module. When null, uses the endpoint security group created by this example. | `list(string)` | `null` | no |
+| <a name="input_route_table_ids"></a> [route\_table\_ids](#input\_route\_table\_ids) | Route table IDs for Gateway endpoints. Ignored for Interface and GatewayLoadBalancer endpoint types. | `list(string)` | `[]` | no |
+| <a name="input_auto_accept"></a> [auto\_accept](#input\_auto\_accept) | Whether to auto-accept the endpoint request. | `bool` | `false` | no |
+| <a name="input_ip_address_type"></a> [ip\_address\_type](#input\_ip\_address\_type) | IP address type for the endpoint. Valid values: ipv4, dualstack, ipv6. Null uses the service default. | `string` | `null` | no |
+| <a name="input_dns_options"></a> [dns\_options](#input\_dns\_options) | Optional DNS options for Interface endpoints. Ignored for non-Interface endpoint types. | <pre>object({<br/>    dns_record_ip_type                             = optional(string)<br/>    private_dns_only_for_inbound_resolver_endpoint = optional(bool)<br/>  })</pre> | `null` | no |
 | <a name="input_tags"></a> [tags](#input\_tags) | Tags applied to all resources in this example. | `map(string)` | <pre>{<br/>  "Environment": "test",<br/>  "Owner": "terratest",<br/>  "Service": "vpc-endpoint"<br/>}</pre> | no |
 
 ## Outputs

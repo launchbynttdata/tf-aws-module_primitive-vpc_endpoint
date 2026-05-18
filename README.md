@@ -163,7 +163,7 @@ make test
 make check
 ```
 
-`make check` is the authoritative top-level entrypoint used by CI and covers linting followed by all `make test` stages. Use `make test` for local development when you want to skip linting.
+`make check` is the authoritative top-level entrypoint used by CI and covers linting followed by all `make test` stages. `make test` is the module-level test stage used by that framework entrypoint and is useful for local development when you intentionally want to skip linting.
 
 The `make test` target runs two stages via GNU Make's double-colon rule composition:
 

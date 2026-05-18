@@ -123,14 +123,13 @@ clean:
 	-repo list | awk '{ print $1; }' | cut -d '/' -f1 | uniq | xargs rm -rf
 	find . -type l ! -exec test -e {} \; -print | xargs rm -rf
 
-.PHONY: init-clean
-init-clean:
-	rm -rf .git
-	git init --initial-branch=main
-
 TF_TEST_DIRECTORY ?= tests/terraform
 GO_TEST_TIMEOUT ?= 30m
 GO_TEST_TARGET ?= ./tests/...
+
+# `check` is provided by the shared framework and invokes `lint` + `test`.
+# This module intentionally extends the framework's base `test::` target with
+# module-specific Terraform and Go test stages.
 
 .PHONY: tfmodule/test/terraform
 tfmodule/test/terraform:

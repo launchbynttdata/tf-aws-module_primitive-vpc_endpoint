@@ -46,6 +46,73 @@ variable "endpoint_policy" {
   default     = null
 }
 
+variable "service_name" {
+  description = "Optional endpoint service name override (for example com.amazonaws.us-east-2.s3). When null, defaults to regional S3 for var.region."
+  type        = string
+  default     = null
+}
+
+variable "vpc_endpoint_type" {
+  description = "Endpoint type passed to the module. Valid values: Interface, Gateway, GatewayLoadBalancer."
+  type        = string
+  default     = "Interface"
+
+  validation {
+    condition     = contains(["Interface", "Gateway", "GatewayLoadBalancer"], var.vpc_endpoint_type)
+    error_message = "vpc_endpoint_type must be one of: Interface, Gateway, GatewayLoadBalancer."
+  }
+}
+
+variable "private_dns_enabled" {
+  description = "Whether to enable private DNS on Interface endpoints. Ignored for non-Interface types."
+  type        = bool
+  default     = false
+}
+
+variable "endpoint_subnet_ids" {
+  description = "Optional subnet IDs to pass into the endpoint module. When null, uses the two subnets created by this example."
+  type        = list(string)
+  default     = null
+}
+
+variable "endpoint_security_group_ids" {
+  description = "Optional security group IDs to pass into the endpoint module. When null, uses the endpoint security group created by this example."
+  type        = list(string)
+  default     = null
+}
+
+variable "route_table_ids" {
+  description = "Route table IDs for Gateway endpoints. Ignored for Interface and GatewayLoadBalancer endpoint types."
+  type        = list(string)
+  default     = []
+}
+
+variable "auto_accept" {
+  description = "Whether to auto-accept the endpoint request."
+  type        = bool
+  default     = false
+}
+
+variable "ip_address_type" {
+  description = "IP address type for the endpoint. Valid values: ipv4, dualstack, ipv6. Null uses the service default."
+  type        = string
+  default     = null
+
+  validation {
+    condition     = var.ip_address_type == null ? true : contains(["ipv4", "dualstack", "ipv6"], var.ip_address_type)
+    error_message = "ip_address_type must be one of: ipv4, dualstack, ipv6, or null."
+  }
+}
+
+variable "dns_options" {
+  description = "Optional DNS options for Interface endpoints. Ignored for non-Interface endpoint types."
+  type = object({
+    dns_record_ip_type                             = optional(string)
+    private_dns_only_for_inbound_resolver_endpoint = optional(bool)
+  })
+  default = null
+}
+
 variable "tags" {
   description = "Tags applied to all resources in this example."
   type        = map(string)

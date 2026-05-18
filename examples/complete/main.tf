@@ -123,6 +123,19 @@ module "endpoint_sg_egress_all" {
   tags = var.tags
 }
 
+locals {
+  endpoint_service_name = var.service_name != null ? var.service_name : "com.amazonaws.${var.region}.s3"
+
+  endpoint_subnet_ids = var.endpoint_subnet_ids != null ? var.endpoint_subnet_ids : [
+    module.subnet_a.subnet_id,
+    module.subnet_b.subnet_id,
+  ]
+
+  endpoint_security_group_ids = var.endpoint_security_group_ids != null ? var.endpoint_security_group_ids : [
+    module.endpoint_sg.id,
+  ]
+}
+
 # ---------------------------------------------------------------------------
 # VPC endpoint under test
 # Interface endpoint for S3 in the region, placed in both private subnets.
@@ -134,11 +147,15 @@ module "vpc_endpoint" {
   source = "../.."
 
   vpc_id              = module.vpc.vpc_id
-  service_name        = "com.amazonaws.${var.region}.s3"
-  vpc_endpoint_type   = "Interface"
-  private_dns_enabled = false
-  subnet_ids          = [module.subnet_a.subnet_id, module.subnet_b.subnet_id]
-  security_group_ids  = [module.endpoint_sg.id]
+  service_name        = local.endpoint_service_name
+  vpc_endpoint_type   = var.vpc_endpoint_type
+  private_dns_enabled = var.private_dns_enabled
+  subnet_ids          = local.endpoint_subnet_ids
+  security_group_ids  = local.endpoint_security_group_ids
+  route_table_ids     = var.route_table_ids
+  auto_accept         = var.auto_accept
+  ip_address_type     = var.ip_address_type
+  dns_options         = var.dns_options
   policy              = var.endpoint_policy
 
   tags = var.tags
