@@ -1,0 +1,45 @@
+# Required inputs
+vpc_id       = "vpc-0123456789abcdef0"
+service_name = "com.amazonaws.us-east-2.s3"
+
+# Common interface endpoint settings
+vpc_endpoint_type   = "Interface"
+private_dns_enabled = false
+subnet_ids          = ["subnet-aaaaaaaaaaaaaaa01", "subnet-aaaaaaaaaaaaaaa02"]
+security_group_ids  = ["sg-0123456789abcdef0"]
+
+# Optional endpoint behavior
+auto_accept     = false
+ip_address_type = "ipv4"
+
+# Optional for Gateway endpoints
+# route_table_ids = ["rtb-0123456789abcdef0"]
+
+# Optional DNS options for interface endpoints
+# dns_options = {
+#   dns_record_ip_type                             = "ipv4"
+#   private_dns_only_for_inbound_resolver_endpoint = false
+# }
+
+# Optional policy document (stringified JSON)
+# policy = <<JSON
+# {
+#   "Version": "2012-10-17",
+#   "Statement": [
+#     {
+#       "Sid": "AllowReadOnly",
+#       "Effect": "Allow",
+#       "Principal": "*",
+#       "Action": ["s3:GetObject", "s3:ListBucket"],
+#       "Resource": "*"
+#     }
+#   ]
+# }
+# JSON
+
+# Optional tags
+tags = {
+  Environment = "dev"
+  Owner       = "platform"
+  Service     = "vpc-endpoint"
+}
