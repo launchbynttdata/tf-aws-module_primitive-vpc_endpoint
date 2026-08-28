@@ -58,18 +58,18 @@ func verifyEndpointReadOnly(t *testing.T, ctx types.TestContext) endpointVerific
 
 	tfOptions := ctx.TerratestTerraformOptions()
 
-	endpointID := terraform.Output(t, tfOptions, "endpoint_id")
+	endpointID := terraform.OutputContext(t, context.Background(), tfOptions, "endpoint_id")
 	require.NotEmpty(t, endpointID, "endpoint_id output must not be empty")
 
-	region := terraform.Output(t, tfOptions, "region")
+	region := terraform.OutputContext(t, context.Background(), tfOptions, "region")
 	if region == "" {
 		region = "us-east-2"
 	}
 
 	expectedServiceName := fmt.Sprintf("com.amazonaws.%s.s3", region)
-	expectedSubnetIDs := terraform.OutputList(t, tfOptions, "subnet_ids")
+	expectedSubnetIDs := terraform.OutputListContext(t, context.Background(), tfOptions, "subnet_ids")
 	require.Len(t, expectedSubnetIDs, 2, "complete example should create two endpoint subnets")
-	expectedSecurityGroupID := terraform.Output(t, tfOptions, "endpoint_security_group_id")
+	expectedSecurityGroupID := terraform.OutputContext(t, context.Background(), tfOptions, "endpoint_security_group_id")
 	require.NotEmpty(t, expectedSecurityGroupID, "endpoint_security_group_id output must not be empty")
 
 	awsCfg, err := config.LoadDefaultConfig(context.Background(), config.WithRegion(region))
