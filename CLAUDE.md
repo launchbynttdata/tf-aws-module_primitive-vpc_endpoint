@@ -1,9 +1,9 @@
-# CLAUDE.md
-
 @AGENTS.md
 
-## Claude Code Notes
+# Claude Code Notes
 
-- Use the instructions imported from `AGENTS.md` as the default project standard.
-- For multi-file or higher-risk edits (module interface, tests, policy logic), present a short plan before implementing.
-- Always summarize exactly which checks were run and any checks that could not be run.
+Use `AGENTS.md` as the shared operating contract. Claude-specific routing lives in `.claude/rules/`.
+
+When a task matches primitive module creation, reference architecture creation, or module cleanup, follow the corresponding workflow under `.agents/skills/` and read only the referenced material needed for that task.
+
+Keep `CLAUDE.md` concise. Put task-specific guidance in `.claude/rules/` or `.agents/skills/` rather than expanding this file.
