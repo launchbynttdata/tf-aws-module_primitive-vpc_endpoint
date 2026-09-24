@@ -47,9 +47,9 @@ func TestComposableComplete(t *testing.T, ctx types.TestContext) {
 	runEndpointTagWriteProbe(t, verification.client, verification.endpointID)
 }
 
-// TestComposableCompleteReadonly validates the deployed endpoint via read-only
+// TestComposableCompleteReadOnly validates the deployed endpoint via read-only
 // SDK calls only.
-func TestComposableCompleteReadonly(t *testing.T, ctx types.TestContext) {
+func TestComposableCompleteReadOnly(t *testing.T, ctx types.TestContext) {
 	verifyEndpointReadOnly(t, ctx)
 }
 
