@@ -134,22 +134,16 @@ The test runner applies the example using `test.tfvars`, asserts the endpoint is
 | <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) | ~> 1.10 |
 | <a name="requirement_aws"></a> [aws](#requirement\_aws) | ~> 5.100 |
 
-## Providers
-
-| Name | Version |
-|------|---------|
-| <a name="provider_aws"></a> [aws](#provider\_aws) | 5.100.0 |
-
 ## Modules
 
 | Name | Source | Version |
 |------|--------|---------|
-| <a name="module_vpc"></a> [vpc](#module\_vpc) | terraform.registry.launch.nttdata.com/module_primitive/vpc/aws | ~> 1.0.5 |
+| <a name="module_endpoint_sg"></a> [endpoint\_sg](#module\_endpoint\_sg) | terraform.registry.launch.nttdata.com/module_primitive/security_group/aws | ~> 0.7.3 |
+| <a name="module_endpoint_sg_egress_all"></a> [endpoint\_sg\_egress\_all](#module\_endpoint\_sg\_egress\_all) | terraform.registry.launch.nttdata.com/module_primitive/vpc_security_group_egress_rule/aws | ~> 0.2.2 |
+| <a name="module_endpoint_sg_ingress_https"></a> [endpoint\_sg\_ingress\_https](#module\_endpoint\_sg\_ingress\_https) | terraform.registry.launch.nttdata.com/module_primitive/vpc_security_group_ingress_rule/aws | ~> 0.1.4 |
 | <a name="module_subnet_a"></a> [subnet\_a](#module\_subnet\_a) | terraform.registry.launch.nttdata.com/module_primitive/subnet/aws | ~> 1.0.5 |
 | <a name="module_subnet_b"></a> [subnet\_b](#module\_subnet\_b) | terraform.registry.launch.nttdata.com/module_primitive/subnet/aws | ~> 1.0.5 |
-| <a name="module_endpoint_sg"></a> [endpoint\_sg](#module\_endpoint\_sg) | terraform.registry.launch.nttdata.com/module_primitive/security_group/aws | ~> 0.7.3 |
-| <a name="module_endpoint_sg_ingress_https"></a> [endpoint\_sg\_ingress\_https](#module\_endpoint\_sg\_ingress\_https) | terraform.registry.launch.nttdata.com/module_primitive/vpc_security_group_ingress_rule/aws | ~> 0.1.4 |
-| <a name="module_endpoint_sg_egress_all"></a> [endpoint\_sg\_egress\_all](#module\_endpoint\_sg\_egress\_all) | terraform.registry.launch.nttdata.com/module_primitive/vpc_security_group_egress_rule/aws | ~> 0.2.2 |
+| <a name="module_vpc"></a> [vpc](#module\_vpc) | terraform.registry.launch.nttdata.com/module_primitive/vpc/aws | ~> 1.0.5 |
 | <a name="module_vpc_endpoint"></a> [vpc\_endpoint](#module\_vpc\_endpoint) | ../.. | n/a |
 
 ## Resources
@@ -162,33 +156,33 @@ The test runner applies the example using `test.tfvars`, asserts the endpoint is
 
 | Name | Description | Type | Default | Required |
 |------|-------------|------|---------|:--------:|
-| <a name="input_region"></a> [region](#input\_region) | AWS region for the example deployment. | `string` | `"us-east-2"` | no |
+| <a name="input_auto_accept"></a> [auto\_accept](#input\_auto\_accept) | Whether to auto-accept the endpoint request. | `bool` | `false` | no |
+| <a name="input_dns_options"></a> [dns\_options](#input\_dns\_options) | Optional DNS options for Interface endpoints. Ignored for non-Interface endpoint types. | <pre>object({<br/>    dns_record_ip_type                             = optional(string)<br/>    private_dns_only_for_inbound_resolver_endpoint = optional(bool)<br/>  })</pre> | `null` | no |
+| <a name="input_endpoint_policy"></a> [endpoint\_policy](#input\_endpoint\_policy) | Optional JSON policy document to attach to the VPC endpoint. | `string` | `null` | no |
+| <a name="input_endpoint_security_group_ids"></a> [endpoint\_security\_group\_ids](#input\_endpoint\_security\_group\_ids) | Optional security group IDs to pass into the endpoint module. When null, uses the endpoint security group created by this example. | `list(string)` | `null` | no |
+| <a name="input_endpoint_subnet_ids"></a> [endpoint\_subnet\_ids](#input\_endpoint\_subnet\_ids) | Optional subnet IDs to pass into the endpoint module. When null, uses the two subnets created by this example. | `list(string)` | `null` | no |
+| <a name="input_ip_address_type"></a> [ip\_address\_type](#input\_ip\_address\_type) | IP address type for the endpoint. Valid values: ipv4, dualstack, ipv6. Null uses the service default. | `string` | `null` | no |
 | <a name="input_name_prefix"></a> [name\_prefix](#input\_name\_prefix) | Prefix for resource names in the example. | `string` | `"vpce-example"` | no |
-| <a name="input_vpc_cidr_block"></a> [vpc\_cidr\_block](#input\_vpc\_cidr\_block) | CIDR block for the example VPC. | `string` | `"10.48.0.0/16"` | no |
+| <a name="input_private_dns_enabled"></a> [private\_dns\_enabled](#input\_private\_dns\_enabled) | Whether to enable private DNS on Interface endpoints. Ignored for non-Interface types. | `bool` | `false` | no |
+| <a name="input_region"></a> [region](#input\_region) | AWS region for the example deployment. | `string` | `"us-east-2"` | no |
+| <a name="input_route_table_ids"></a> [route\_table\_ids](#input\_route\_table\_ids) | Route table IDs for Gateway endpoints. Ignored for Interface and GatewayLoadBalancer endpoint types. | `list(string)` | `[]` | no |
+| <a name="input_service_name"></a> [service\_name](#input\_service\_name) | Optional endpoint service name override (for example com.amazonaws.us-east-2.s3). When null, defaults to regional S3 for var.region. | `string` | `null` | no |
 | <a name="input_subnet_cidr_a"></a> [subnet\_cidr\_a](#input\_subnet\_cidr\_a) | CIDR block for the first private subnet. | `string` | `"10.48.10.0/24"` | no |
 | <a name="input_subnet_cidr_b"></a> [subnet\_cidr\_b](#input\_subnet\_cidr\_b) | CIDR block for the second private subnet. | `string` | `"10.48.11.0/24"` | no |
-| <a name="input_endpoint_policy"></a> [endpoint\_policy](#input\_endpoint\_policy) | Optional JSON policy document to attach to the VPC endpoint. | `string` | `null` | no |
-| <a name="input_service_name"></a> [service\_name](#input\_service\_name) | Optional endpoint service name override (for example com.amazonaws.us-east-2.s3). When null, defaults to regional S3 for var.region. | `string` | `null` | no |
-| <a name="input_vpc_endpoint_type"></a> [vpc\_endpoint\_type](#input\_vpc\_endpoint\_type) | Endpoint type passed to the module. Valid values: Interface, Gateway, GatewayLoadBalancer. | `string` | `"Interface"` | no |
-| <a name="input_private_dns_enabled"></a> [private\_dns\_enabled](#input\_private\_dns\_enabled) | Whether to enable private DNS on Interface endpoints. Ignored for non-Interface types. | `bool` | `false` | no |
-| <a name="input_endpoint_subnet_ids"></a> [endpoint\_subnet\_ids](#input\_endpoint\_subnet\_ids) | Optional subnet IDs to pass into the endpoint module. When null, uses the two subnets created by this example. | `list(string)` | `null` | no |
-| <a name="input_endpoint_security_group_ids"></a> [endpoint\_security\_group\_ids](#input\_endpoint\_security\_group\_ids) | Optional security group IDs to pass into the endpoint module. When null, uses the endpoint security group created by this example. | `list(string)` | `null` | no |
-| <a name="input_route_table_ids"></a> [route\_table\_ids](#input\_route\_table\_ids) | Route table IDs for Gateway endpoints. Ignored for Interface and GatewayLoadBalancer endpoint types. | `list(string)` | `[]` | no |
-| <a name="input_auto_accept"></a> [auto\_accept](#input\_auto\_accept) | Whether to auto-accept the endpoint request. | `bool` | `false` | no |
-| <a name="input_ip_address_type"></a> [ip\_address\_type](#input\_ip\_address\_type) | IP address type for the endpoint. Valid values: ipv4, dualstack, ipv6. Null uses the service default. | `string` | `null` | no |
-| <a name="input_dns_options"></a> [dns\_options](#input\_dns\_options) | Optional DNS options for Interface endpoints. Ignored for non-Interface endpoint types. | <pre>object({<br/>    dns_record_ip_type                             = optional(string)<br/>    private_dns_only_for_inbound_resolver_endpoint = optional(bool)<br/>  })</pre> | `null` | no |
 | <a name="input_tags"></a> [tags](#input\_tags) | Tags applied to all resources in this example. | `map(string)` | <pre>{<br/>  "Environment": "test",<br/>  "Owner": "terratest",<br/>  "Service": "vpc-endpoint"<br/>}</pre> | no |
+| <a name="input_vpc_cidr_block"></a> [vpc\_cidr\_block](#input\_vpc\_cidr\_block) | CIDR block for the example VPC. | `string` | `"10.48.0.0/16"` | no |
+| <a name="input_vpc_endpoint_type"></a> [vpc\_endpoint\_type](#input\_vpc\_endpoint\_type) | Endpoint type passed to the module. Valid values: Interface, Gateway, GatewayLoadBalancer. | `string` | `"Interface"` | no |
 
 ## Outputs
 
 | Name | Description |
 |------|-------------|
-| <a name="output_vpc_id"></a> [vpc\_id](#output\_vpc\_id) | VPC ID used by the example. |
+| <a name="output_endpoint_arn"></a> [endpoint\_arn](#output\_endpoint\_arn) | VPC endpoint ARN. |
+| <a name="output_endpoint_dns_entries"></a> [endpoint\_dns\_entries](#output\_endpoint\_dns\_entries) | DNS entries for the VPC endpoint. |
+| <a name="output_endpoint_id"></a> [endpoint\_id](#output\_endpoint\_id) | VPC endpoint ID. |
+| <a name="output_endpoint_security_group_id"></a> [endpoint\_security\_group\_id](#output\_endpoint\_security\_group\_id) | Security group ID attached to the endpoint. |
+| <a name="output_endpoint_state"></a> [endpoint\_state](#output\_endpoint\_state) | Current state of the VPC endpoint. |
 | <a name="output_region"></a> [region](#output\_region) | AWS region used by the example deployment. |
 | <a name="output_subnet_ids"></a> [subnet\_ids](#output\_subnet\_ids) | Subnet IDs associated with the endpoint. |
-| <a name="output_endpoint_security_group_id"></a> [endpoint\_security\_group\_id](#output\_endpoint\_security\_group\_id) | Security group ID attached to the endpoint. |
-| <a name="output_endpoint_id"></a> [endpoint\_id](#output\_endpoint\_id) | VPC endpoint ID. |
-| <a name="output_endpoint_arn"></a> [endpoint\_arn](#output\_endpoint\_arn) | VPC endpoint ARN. |
-| <a name="output_endpoint_state"></a> [endpoint\_state](#output\_endpoint\_state) | Current state of the VPC endpoint. |
-| <a name="output_endpoint_dns_entries"></a> [endpoint\_dns\_entries](#output\_endpoint\_dns\_entries) | DNS entries for the VPC endpoint. |
+| <a name="output_vpc_id"></a> [vpc\_id](#output\_vpc\_id) | VPC ID used by the example. |
 <!-- END_TF_DOCS -->

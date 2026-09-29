@@ -37,5 +37,5 @@ func TestVpcEndpointPrimitiveReadOnly(t *testing.T) {
 		}).
 		Build()
 
-	lib.RunNonDestructiveTest(t, *ctx, testimpl.TestComposableCompleteReadonly)
+	lib.RunNonDestructiveTest(t, *ctx, testimpl.TestComposableCompleteReadOnly)
 }
